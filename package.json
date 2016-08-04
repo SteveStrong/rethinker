@@ -4,7 +4,8 @@
   "description": "testing the loading of data into rethinkdb and the api",
   "main": "app.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node app.js"
   },
   "author": "",
   "license": "ISC",
@@ -13,7 +14,9 @@
     "express": "^4.14.0",
     "gen-run": "^0.1.2",
     "rethinkdb": "^2.3.2",
-    "shelljs": "^0.7.3"
+    "rethinkdbdash": "^2.3.19",
+    "shelljs": "^0.7.3",
+    "vm": "^0.1.0"
   },
   "devDependencies": {
     "nodemon": "^1.10.0"

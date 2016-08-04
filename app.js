@@ -1,20 +1,62 @@
 // Import express
+'use strict';
+
 var express = require('express');
-var bodyParser = require('body-parser');
+//var bodyParser = require('body-parser');
 var app = express();
 
 //https://github.com/rethinkdb/rethinkdb-example-nodejs
 
+
+//https://nodejs.org/api/vm.html
+const vm = require('vm')
+//const util = require('util');
+
+const sandbox = {
+  animal: 'cat',
+  count: 2
+};
+
+const script = new vm.Script('count += 1; name = "kitty";');
+
+const context = new vm.createContext(sandbox);
+for (var i = 0; i < 10; ++i) {
+  script.runInContext(context);
+}
+console.log(sandbox);
+
+//console.log(util.inspect(sandbox));
+
+let code =
+`(function(require) {
+
+   const http = require('http');
+
+   http.createServer( (request, response) => {
+     response.writeHead(200, {'Content-Type': 'text/plain'});
+     response.end('Hello World\\n');
+   }).listen(8124);
+
+   console.log('Server running at http://127.0.0.1:8124/');
+ })`;
+
+// vm.runInThisContext(code)(require);
+
+
+
+
+
 // Load config for RethinkDB and express
 var config = require(__dirname+"/config.js");
 
-var r = require('rethinkdb');
+//var r = require('rethinkdb');
+var r = require('rethinkdbdash')();
 
 app.use(express.static(__dirname + '/public'));
-app.use(bodyParser());
+//app.use(bodyParser());
 
 // Middleware that will create a connection to the database
-app.use(createConnection);
+//app.use(createConnection);
 
 // Define main routes
 app.route('/todo/get').get(get);
@@ -23,7 +65,7 @@ app.route('/todo/update').post(update);
 app.route('/todo/delete').post(del);
 
 // Middleware to close a connection to the database
-app.use(closeConnection);
+//app.use(closeConnection);
 
 
 /*
@@ -115,6 +157,14 @@ function closeConnection(req, res, next) {
     req._rdbConn.close();
 }
 
+config.rethinkdb.db = 'flow';
+var tablename = 'starbucks';
+
+var china = require("./data/flowchina");
+var usa = require("./data/flowusa");
+var starbucks = require("./data/starbucks");
+var datalist = starbucks;
+
 /*
  * Create tables/indexes then start express
  */
@@ -125,17 +175,23 @@ r.connect(config.rethinkdb, function(err, conn) {
         process.exit(1);
     }
 
-    r.table('todos').indexWait('createdAt').run(conn).then(function(err, result) {
+    r.table(tablename).run(conn).then(function(err, result) {
         console.log("Table and index are available, starting express...");
         startExpress();
+    }).finally(function(result){
+            //datalist.forEach(function(item) {
+                r.table(tablename).insert(datalist).run(conn, {durability: 'soft'});
+            //});
     }).error(function(err) {
         // The database/table/index was not available, create them
         r.dbCreate(config.rethinkdb.db).run(conn).finally(function() {
-            return r.tableCreate('todos').run(conn)
-        }).finally(function() {
-            r.table('todos').indexCreate('createdAt').run(conn);
+            return r.tableCreate(tablename).run(conn)
         }).finally(function(result) {
-            r.table('todos').indexWait('createdAt').run(conn)
+            //maybe load the table here?
+            //datalist.forEach(function(item) {
+                r.table(tablename).insert(datalist).run(conn, {durability: 'soft'});
+            //});
+            
         }).then(function(result) {
             console.log("Table and index are available, starting express...");
             startExpress();
