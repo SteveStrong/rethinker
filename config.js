@@ -5,8 +5,5 @@ module.exports = {
         authKey: "",
         db: "DataLiftRethink"
     },
-    express: {
-        port: 3000
-    }
 }
 

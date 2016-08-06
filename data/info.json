@@ -1,0 +1,22 @@
+{
+    "note": "St Louis Crime Data 2016",
+   "container": {
+      "key": "datalift/stlcrime.datalift",
+      "name": "stlcrime.csv",
+      "url": "https://hub.docker.com/r/datalift/stlcrime.datalift/",
+      "uuid": "a2157b89-a57d-492e-80fe-6cf7c50354ca"
+   },
+   "publishedDate": "2016-07-15T20:42:02+00:00",
+   "keywords": [
+      "seattle",
+      "crime",
+      "911",
+      "geolocation"
+   ],
+   "command": "docker pull datalift/stlcrime.datalift",
+   "stats": {
+      "size": "268000 kb",
+      "mindate": "11/09/2011 11:33:00 PM",
+      "maxdate": "06/19/2016 12:02:00 AM"
+   }
+}

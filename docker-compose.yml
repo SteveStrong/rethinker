@@ -1,0 +1,92 @@
+# docker-compose up --build
+# docker exec -it sailfishviewer_sailfishview_1 /bin/bash
+# curl http://starbucks:3000/api/data
+# curl http://starbucks:3000/api/info
+#
+# docker rmi -f $(docker images -q)
+
+version: '2'
+services:
+
+
+    starbucks:
+        image: datalift/starbucks.datalift
+        ports:
+            - "3003:3000"
+        networks:
+            - fish-network
+
+    dailyshow:
+        image: datalift/dailyshow.datalift
+        ports:
+            - "3002:3000"
+        networks:
+            - fish-network
+
+    stlcrime:
+        image: datalift/stlcrime.datalift
+        ports:
+            - "3005:3000"
+        networks:
+            - fish-network
+
+    drugevents:
+        image: datalift/drugevents.datalift
+        ports:
+            - "3004:3000"
+        networks:
+            - fish-network
+
+    flowgerman:
+        image: datalift/flowgerman.datalift
+        ports:
+            - "3006:3000"
+        networks:
+            - flow-network
+
+    flowchina:
+        image: datalift/flowchina.datalift
+        ports:
+            - "3007:3000"
+        networks:
+            - flow-network
+
+    flowaustralia:
+        image: datalift/flowaustralia.datalift
+        ports:
+            - "3008:3000"
+        networks:
+            - flow-network
+
+    flowusa:
+        image: datalift/flowusa.datalift
+        ports:
+            - "3009:3000"
+        networks:
+            - flow-network
+
+    sailfishview:
+        build:
+            context: .
+            dockerfile: sailfish.dockerfile
+        # image: stevestrongbah/sailfishview
+        ports:
+            - "3001:3000"
+        networks:
+            - fish-network
+            - flow-network
+        environment:
+            SERVICE_STARBUCKS: 'starbucks'
+            SERVICE_DAILYSHOW: 'dailyshow'
+            SERVICE_STLCRIME:  'stlcrime'
+            SERVICE_DRUGEVENT: 'drugevents'
+            SERVICE_FLOWGERMAN: 'flowgerman'
+            SERVICE_FLOWCHINA: 'flowchina'
+            SERVICE_FLOWAUSTRALIA: 'flowaustralia'
+            SERVICE_FLOWUSA: 'flowusa'
+
+networks:
+        fish-network:
+            driver: bridge
+        flow-network:
+            driver: bridge

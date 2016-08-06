@@ -1,0 +1,56 @@
+{
+   "note": "St Louis Crime Data",
+   "key": null,
+   "source": null,
+   "format": null,
+   "url": null,
+   "creationDate": "2016-06-24T23:41:22",
+   "lastModifiedDate": "2016-06-24T23:41:22",
+   "maintainer": {
+      "key": "543394",
+      "name": "Colin Sullivan",
+      "role": "Lt",
+      "eMail": "sullivanc@spd.gov",
+      "phone": "555-555-5555",
+      "contact": "sullivanc",
+      "organization": "Seattle Police Department",
+      "webpage": "http://www.seattle.gov/police",
+      "creationDate": "2012-10-22T12:32:33"
+   },
+   "history": [
+      {
+       "key": null,
+       "shortDescription": "Crimes reported from Jan 1 to Feb 29 2016",
+       "longDescription": null,
+       "lastModifiedDate": "2016-03-01T12:44:54",
+       "maintainer": {
+          "key": "543394",
+          "name": "Colin Sullivan",
+          "role": "Lt",
+          "eMail": "sullivanc@spd.gov",
+          "phone": "555-555-5555",
+          "contact": "sullivanc",
+          "organization": "SeattSt Louisle Police Department",
+          "webpage": "http://www.stl.gov/police",
+          "creationDate": "2012-10-22T12:32:33"
+       }
+      },
+      {
+       "key": null,
+       "shortDescription": "Crimes reported from March 1 to April 30 2016",
+       "longDescription": null,
+       "lastModifiedDate": "2016-05-01T12:33:36",
+       "maintainer": {
+          "key": "543195",
+          "name": "Billy Costigan",
+          "role": "Sgt",
+          "eMail": "costiganc@spd.gov",
+          "phone": "555-555-5555",
+          "contact": "costiganc",
+          "organization": "St Louis Police Department",
+          "webpage": "http://www.stl.gov/police",
+          "creationDate": "2012-12-13T06:15:24"
+       }
+     }
+   ]
+}

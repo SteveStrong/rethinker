@@ -1,80 +1,81 @@
+// Import express
+'use strict';
 
-var r = require("rethinkdb");
-
-//  nodemon [your node app]
-
-var express = require('express')
-var app = express()
-
+var express = require('express');
+var dbAPI = require("./model/rethinkAPI");
+var path = require('path');
 var shell = require('shelljs');
 
-var dbEngine = 'rethinkdb -n dataliftdb --bind all'
+//import dbAPI from "./model/rethinkAPI";
+
+
+var app = express();
+
+var dbEngine = 'rethinkdb -n dataliftserver --bind all'
 if (app.get('env') === 'production') {
-  dbEngine = 'rethinkdb --daemon -n dataliftdb --bind all';
+  dbEngine = 'rethinkdb --daemon -n dataliftserver --bind all';
   shell.exec(dbEngine);
 }
 
-//https://github.com/rethinkdb/rethinkdb-example-nodejs/tree/master/todo-angular-express-promise
-console.log('Engine:', dbEngine);
+app.use(express.static(__dirname + '/public'));
+//app.use(bodyParser());
 
-var dbName = 'Super';
-var tablename = 'usax';
-
-var dbConnect = {};
-
-console.log('now create DB');
-
-var run = require('gen-run');
-run(function* () {
-  var conn = yield r.connect({ host: 'localhost', port: 28015 });
-  yield r.dbCreate(dbName).run(conn);
-  console.log(yield r.db(dbName).tableCreate('tv_shows').run(conn));
-  console.log(yield r.table('tv_shows').insert({ name: 'Star Trek TNG' }).run(conn));
-});
-
-var run = require('gen-run');
-run(function* (resume) {
-  var conn = yield r.connect({ host: 'localhost', port: 28015 }, resume);
-  console.log(yield r.db('test').tableCreate('tv_shows').run(conn, resume));
-  console.log(yield r.table('tv_shows').insert({ name: 'Star Trek TNG' }).run(conn, resume));
-});
-
-//https://www.airpair.com/javascript/posts/using-rethinkdb-with-expressjs
-
-// r.connect({
-//     db: dbName
-// })
-// .then(function(conn) {
-//     dbConnect = conn;
-//     return r.dbCreate(dbName).run(conn);
-// })
-// .then(function(err,req){
-//     return r.tableCreate(tablename).run(dbConnect)
-// })
-// .then(function(err,req){
-//     var datalist = [
-//     { id: 1, name: 'steve'},
-//      { id: 2, name: 'stu'},
-//      { id: 3, name: 'don'}
-//     ];
-
-//     datalist.forEach(function(item) {
-//         r.table(tablename).insert(item).run(dbConnect)
-//     });
-// })
+var drugevents = require("./data/drugevents");
+var australia = require("./data/flowaustralia");
+var china = require("./data/flowchina");
+var german = require("./data/flowgerman");
+var usa = require("./data/flowusa");
+var starbucks = require("./data/starbucks");
 
 
+setTimeout(function() {
+
+    dbAPI.createDbSync('data');
+    dbAPI.establishTableSync({table: 'starbucks', documents: starbucks});
+    dbAPI.establishTableSync({table: 'usa', documents: usa});
+    dbAPI.establishTableSync({table: 'australia', documents: australia});
+    dbAPI.establishTableSync({table: 'german', documents: german});
+    dbAPI.establishTableSync({table: 'china', documents: china});
 
 
+    //dbAPI.establishTableReadStream({table: 'drugevents', file:  path.join(__dirname, 'data/drugevents.json')});
+
+    //dbAPI.establishTableSync({table: 'info'});
+    //dbAPI.streamToTableSync({table: 'info', file: path.join(__dirname, 'data/info.json')});
+    
+    //dbAPI.establishTableSync({table: 'provenance', documents: require("./data/provenance")});
+      
+    //dbAPI.establishTableSync({table: 'sltcrime', documents: require("./data/sltcrime.csv")});
+
+}, 2000);
 
 
+function index(req, res, next) {
+    let result = {
+        status: 'is cool',
+        context: 'everything',
+    }
+    res.send(JSON.stringify(result));
 
+    next && next();
+}
 
+// Define main routes
+app.route('/').get(index);
 
+/*
+ * Send back a 500 error
+ */
+function handleError(res) {
+    return function(error) {
+        res.send(500, {error: error.message});
+    }
+}
 
-app.get('/', function (req, res) {
-  res.send(dbEngine)
-})
- 
-app.listen(3000)
+function startExpress() {
+    var port = 3001;
+    app.listen(port);
+}
+
+startExpress();
 

@@ -5,12 +5,13 @@
   "main": "app.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node app.js"
+    "start": "node index.js"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
     "body-parser": "^1.15.2",
+    "deasync": "^0.1.7",
     "express": "^4.14.0",
     "gen-run": "^0.1.2",
     "rethinkdb": "^2.3.2",
