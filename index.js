@@ -37,6 +37,8 @@ setTimeout(function() {
     dbAPI.establishTableSync({table: 'german', documents: german});
     dbAPI.establishTableSync({table: 'china', documents: china});
 
+    dbAPI.establishTableSync({table: 'drugevents', documents: drugevents});
+    dbAPI.establishTableSync({table: 'info', documents: require("./data/info")});
 
     //dbAPI.establishTableReadStream({table: 'drugevents', file:  path.join(__dirname, 'data/drugevents.json')});
 
