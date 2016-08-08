@@ -30,28 +30,28 @@ var usa = require("./data/flowusa");
 var starbucks = require("./data/starbucks");
 
 
-setTimeout(function() {
+// setTimeout(function() {
 
-    dbAPI.createDbSync('data');
-    //dbAPI.establishTableSync({table: 'starbucks', documents: starbucks});
-    dbAPI.establishTableSync({table: 'usa', documents: usa});
-    //dbAPI.establishTableSync({table: 'australia', documents: australia});
-    //dbAPI.establishTableSync({table: 'german', documents: german});
-    dbAPI.establishTableSync({table: 'china', documents: china});
+//     dbAPI.createDbSync('data');
+//     //dbAPI.establishTableSync({table: 'starbucks', documents: starbucks});
+//     dbAPI.establishTableSync({table: 'usa', documents: usa});
+//     //dbAPI.establishTableSync({table: 'australia', documents: australia});
+//     //dbAPI.establishTableSync({table: 'german', documents: german});
+//     dbAPI.establishTableSync({table: 'china', documents: china});
 
-    //dbAPI.establishTableSync({table: 'drugevents', documents: drugevents});
-    dbAPI.establishTableSync({table: 'info', documents: require("./data/info")});
+//     //dbAPI.establishTableSync({table: 'drugevents', documents: drugevents});
+//     dbAPI.establishTableSync({table: 'info', documents: require("./data/info")});
 
-    //dbAPI.establishTableReadStream({table: 'drugevents', file:  path.join(__dirname, 'data/drugevents.json')});
+//     //dbAPI.establishTableReadStream({table: 'drugevents', file:  path.join(__dirname, 'data/drugevents.json')});
 
-    //dbAPI.establishTableSync({table: 'info'});
-    //dbAPI.streamToTableSync({table: 'info', file: path.join(__dirname, 'data/info.json')});
+//     //dbAPI.establishTableSync({table: 'info'});
+//     //dbAPI.streamToTableSync({table: 'info', file: path.join(__dirname, 'data/info.json')});
     
-    //dbAPI.establishTableSync({table: 'provenance', documents: require("./data/provenance")});
+//     //dbAPI.establishTableSync({table: 'provenance', documents: require("./data/provenance")});
       
-    //dbAPI.establishTableSync({table: 'sltcrime', documents: require("./data/sltcrime.csv")});
+//     //dbAPI.establishTableSync({table: 'sltcrime', documents: require("./data/sltcrime.csv")});
 
-}, 2000);
+// }, 2000);
 
 
 function index(req, res, next) {
@@ -67,18 +67,24 @@ function index(req, res, next) {
 function query(req, res, next) {
 
     
-    var result = dbAPI.doQuerySync({}, function(err,found){
-        res.send(JSON.stringify(found));
+    var args = {
+        table: 'usa',
+        filter: {'headCount': 3}
+    }
+    dbAPI.doQuerySync(args, function(err,found){
+        if(err) {
+            return next(err);
+        }
+        res.json(found);
     });
-
-    next && next(undefined, JSON.stringify(result));
 }
 
 // Define main routes
 app.route('/').get(index);
 
 
-app.route('/query').get(query);
+app.route('/query')
+    .get(query);
 
 /*
  * Send back a 500 error

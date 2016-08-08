@@ -16,7 +16,7 @@ function rethinkAPI() {
       host: "localhost",
       port: 28015,
       authKey: "",
-      db: "DataLift",
+      db: "data",
       table: "Data"
   };
 
@@ -114,21 +114,19 @@ function rethinkAPI() {
       r.connect(rethinkdbConfig,function(err,conn){
         assert.ok(err === null,err);
 
-        //r.db('data').table('usa').filter({id: 22});
+        r.table(args.table).filter(args.filter || {}).run(conn, function(err, cursor) {
+            if(err) {
+              return next(err);
+            }
 
-        r.table('usa').filter(r.row('id').eq(22)).
-          run(conn, function(err, cursor) {
-              if (err && next)  next(err);
-              cursor.toArray(function(err, result) {
-                  //if (err) throw err;
-                  next && next(err,result);
-                  console.log(JSON.stringify(result, null, 2));
-              });
-              conn.close();
+            //Retrieve all the todos in an array.
+            cursor.toArray(function(err, result) {
+              return next(err, result);
+            });
           });
+        
       });
 
-      next && next();
 
   }
 
