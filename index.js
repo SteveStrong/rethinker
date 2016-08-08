@@ -2,6 +2,8 @@
 'use strict';
 
 var express = require('express');
+var bodyParser = require('body-parser');
+var async = require('async');
 var dbAPI = require("./model/rethinkAPI");
 var path = require('path');
 var shell = require('shelljs');
@@ -18,7 +20,7 @@ if (app.get('env') === 'production') {
 }
 
 app.use(express.static(__dirname + '/public'));
-//app.use(bodyParser());
+app.use(bodyParser.json());
 
 var drugevents = require("./data/drugevents");
 var australia = require("./data/flowaustralia");
