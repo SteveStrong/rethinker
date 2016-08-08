@@ -109,6 +109,31 @@ function rethinkAPI() {
 
   self.streamToTableSync = DA(self.streamToTable);
 
+  self.doQuery = function (args,next) {
+
+      r.connect(rethinkdbConfig,function(err,conn){
+        assert.ok(err === null,err);
+
+        //r.db('data').table('usa').filter({id: 22});
+
+        r.table('usa').filter(r.row('id').eq(22)).
+          run(conn, function(err, cursor) {
+              if (err && next)  next(err);
+              cursor.toArray(function(err, result) {
+                  //if (err) throw err;
+                  next && next(err,result);
+                  console.log(JSON.stringify(result, null, 2));
+              });
+              conn.close();
+          });
+      });
+
+      next && next();
+
+  }
+
+  self.doQuerySync = DA(self.doQuery);
+
   return self;
 }
 

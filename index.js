@@ -31,13 +31,13 @@ var starbucks = require("./data/starbucks");
 setTimeout(function() {
 
     dbAPI.createDbSync('data');
-    dbAPI.establishTableSync({table: 'starbucks', documents: starbucks});
+    //dbAPI.establishTableSync({table: 'starbucks', documents: starbucks});
     dbAPI.establishTableSync({table: 'usa', documents: usa});
-    dbAPI.establishTableSync({table: 'australia', documents: australia});
-    dbAPI.establishTableSync({table: 'german', documents: german});
+    //dbAPI.establishTableSync({table: 'australia', documents: australia});
+    //dbAPI.establishTableSync({table: 'german', documents: german});
     dbAPI.establishTableSync({table: 'china', documents: china});
 
-    dbAPI.establishTableSync({table: 'drugevents', documents: drugevents});
+    //dbAPI.establishTableSync({table: 'drugevents', documents: drugevents});
     dbAPI.establishTableSync({table: 'info', documents: require("./data/info")});
 
     //dbAPI.establishTableReadStream({table: 'drugevents', file:  path.join(__dirname, 'data/drugevents.json')});
@@ -62,8 +62,21 @@ function index(req, res, next) {
     next && next();
 }
 
+function query(req, res, next) {
+
+    
+    var result = dbAPI.doQuerySync({}, function(err,found){
+        res.send(JSON.stringify(found));
+    });
+
+    next && next(undefined, JSON.stringify(result));
+}
+
 // Define main routes
 app.route('/').get(index);
+
+
+app.route('/query').get(query);
 
 /*
  * Send back a 500 error
@@ -75,7 +88,7 @@ function handleError(res) {
 }
 
 function startExpress() {
-    var port = 3001;
+    var port = 3000;
     app.listen(port);
 }
 
