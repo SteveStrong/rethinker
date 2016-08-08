@@ -64,13 +64,21 @@ function index(req, res, next) {
     next && next();
 }
 
-function query(req, res, next) {
-
-    
+function queryGET(req, res, next) {   
     var args = {
         table: 'usa',
         filter: {'headCount': 3}
     }
+    dbAPI.doQuerySync(args, function(err,found){
+        if(err) {
+            return next(err);
+        }
+        res.json(found);
+    });
+}
+
+function queryPOST(req, res, next) {   
+    var args = req.body;
     dbAPI.doQuerySync(args, function(err,found){
         if(err) {
             return next(err);
@@ -84,7 +92,8 @@ app.route('/').get(index);
 
 
 app.route('/query')
-    .get(query);
+    .get(queryGET)
+    .post(queryPOST);
 
 /*
  * Send back a 500 error
