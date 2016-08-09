@@ -1,0 +1,16 @@
+{
+    "author": "strong_steve@bah.com",
+    "version": "1.0.0",
+    "source": "sailfish",
+    "lastUpdate": "2016-07-16T12:24:30",
+    "dataformat": "csv",
+    "isVirtual": false,
+    "contents": {
+        "info": "info.json",
+        "provenance": "provenance.json",
+        "preview": "preview_starbucks.csv",
+        "payload": "payload_starbucks.json",
+        "raw": "starbucks.csv",        
+        "metadata": ""
+    }
+}

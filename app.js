@@ -1,221 +1,198 @@
-var async = require('async');
-var shell = require('shelljs');
 var express = require('express');
+var cors = require('cors')
+var fs = require('fs');
+var path = require('path');
+var http = require('http');
+var favicon = require('serve-favicon');
+var logger = require('morgan');
+var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
-var r = require('rethinkdb');
-
-var config = require(__dirname + '/config.js');
+var glob = require("glob");
 
 var app = express();
+app.use(cors());
+
+app.dataLocation = path.join(__dirname, 'data');
+app.serviceLocation = path.join(__dirname, 'API');
+app.datalift = {
+  configError: '',
+  sourceFile: 'unknown',
+  payloadFile: 'unknown'
+};
+
+function mixin(target, source) {
+  if (!source) return target;
+  if (!target) return source;
+  for (var name in source) {
+      target[name] = source[name];
+  }
+  return target;
+};
 
 
-//For serving the index.html and all the other front-end assets.
-app.use(express.static(__dirname + '/public'));
+app.viewModel = function(model) {
+    var result = {
+      heading: 'Datalift',
+      title: '',
+      payload: ''
+    }; 
 
+    mixin(result, model);
+    mixin(result, {
+      manifest: app.datalift,
+      sourceFile: app.datalift.sourceFile,
+      payloadFile: app.datalift.payloadFile,
+    });
+
+    return result;
+}
+app.getView = function(defaultView){
+  var view = app.datalift.configError ? 'badConfig': defaultView;
+  return view;
+}
+
+// Development Only
+if (app.get('env') === 'development') {
+  var sassMiddleware = require('node-sass-middleware');
+
+  // Note: you must place sass-middleware *before* `express.static`
+  app.use(sassMiddleware({
+    /* Options */
+    src: __dirname + '/stylesheets',
+    dest: path.join(__dirname, 'public/stylesheets/'),
+    debug: true,
+    outputStyle: 'compressed',
+    prefix: '/stylesheets/'  // Where prefix is at <link rel="stylesheets" href="prefix/style.css"/>
+  }));
+}
+
+//these are the views and view controllers
+var index = require('./routes/index')(app);
+var sampleData = require('./routes/sampleData')(app);
+var metaData = require('./routes/metaData')(app);
+var rawData = require('./routes/rawData')(app);
+var info = require('./routes/info')(app);
+var provenance = require('./routes/provenance')(app);
+var developers = require('./routes/developers')(app);
+var data = require('./routes/data')(app);
+
+var dataAPI = require('./routes/API/data')(app);
+var infoAPI = require('./routes/API/info')(app);
+var provenanceAPI = require('./routes/API/provenance')(app);
+var developersAPI = require('./routes/API/developers')(app);
+var metaDataAPI = require('./routes/API/metaData')(app);
+var rawDataAPI = require('./routes/API/rawData')(app);
+var sampleDataAPI = require('./routes/API/sampleData')(app);
+
+// view engine setup
+app.set('views', path.join(__dirname, 'views'));
+app.set('view engine', 'pug');
+
+// uncomment after placing your favicon in /public
+//app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
+app.use(logger('dev'));
 app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({extended: false}));
+app.use(cookieParser());
 
-//The REST routes for "todos".
-app.route('/todos')
-  .get(listTodoItems)
-  .post(createTodoItem);
+app.use(express.static(path.join(__dirname, 'public')));
 
-app.route('/todos/:id')
-  .get(getTodoItem)
-  .put(updateTodoItem)
-  .delete(deleteTodoItem);
+// Frontend routes
+app.use('/resources', express.static(path.join(__dirname, 'node_modules')));
+app.use('/', index);
+app.use('/sampleData', sampleData);
+app.use('/metaData', metaData);
+app.use('/rawData', rawData);
+app.use('/data', data);
+app.use('/info', info);
+app.use('/developers', developers);
+app.use('/provenance', provenance);
 
-//If we reach this middleware the route could not be handled and must be unknown.
-app.use(handle404);
+// API routes
+app.use('/API/metaData', metaDataAPI);
+app.use('/API/sampleData', sampleDataAPI);
+app.use('/API/rawData', rawDataAPI);
+app.use('/API/data', dataAPI);
+app.use('/API/info', infoAPI);
+app.use('/API/provenance', provenanceAPI);
+app.use('/API/developers', developersAPI);
 
-//Generic error handling middleware.
-app.use(handleError);
 
 
-/*
- * Retrieve all todo items.
- */
-function listTodoItems(req, res, next) {
-  r.table('todos').orderBy({index: 'createdAt'}).run(req.app._rdbConn, function(err, cursor) {
-    if(err) {
-      return next(err);
-    }
 
-    //Retrieve all the todos in an array.
-    cursor.toArray(function(err, result) {
-      if(err) {
-        return next(err);
-      }
 
-      res.json(result);
+
+// catch 404 and forward to error handler
+app.use(function(req, res, next) {
+  var err = new Error('Not Found');
+  err.status = 404;
+  next(err);
+});
+
+// development error handler
+// will print stacktrace
+if (app.get('env') === 'development') {
+  app.use(function(err, req, res, next) {
+    res.status(err.status || 500);
+    res.render('error', {
+      message: err.message,
+      error: err
     });
   });
 }
 
-/*
- * Insert a new todo item.
- */
-function createTodoItem(req, res, next) {
-  var todoItem = req.body;
-  todoItem.createdAt = r.now();
-
-  console.dir(todoItem);
-
-  r.table('todos').insert(todoItem, {returnChanges: true}).run(req.app._rdbConn, function(err, result) {
-    if(err) {
-      return next(err);
-    }
-
-    res.json(result.changes[0].new_val);
+// production error handler
+// no stacktraces leaked to user
+app.use(function(err, req, res, next) {
+  res.status(err.status || 500);
+  res.render('error', {
+    message: err.message,
+    error: {}
   });
-}
-
-/*
- * Get a specific todo item.
- */
-function getTodoItem(req, res, next) {
-  var todoItemID = req.params.id;
-
-  r.table('todos').get(todoItemID).run(req.app._rdbConn, function(err, result) {
-    if(err) {
-      return next(err);
-    }
-
-    res.json(result);
-  });
-}
-
-/*
- * Update a todo item.
- */
-function updateTodoItem(req, res, next) {
-  var todoItem = req.body;
-  var todoItemID = req.params.id;
-
-  r.table('todos').get(todoItemID).update(todoItem, {returnChanges: true}).run(req.app._rdbConn, function(err, result) {
-    if(err) {
-      return next(err);
-    }
-
-    res.json(result.changes[0].new_val);
-  });
-}
-
-/*
- * Delete a todo item.
- */
-function deleteTodoItem(req, res, next) {
-  var todoItemID = req.params.id;
-
-  r.table('todos').get(todoItemID).delete().run(req.app._rdbConn, function(err, result) {
-    if(err) {
-      return next(err);
-    }
-
-    res.json({success: true});
-  });
-}
-
-/*
- * Page-not-found middleware.
- */
-function handle404(req, res, next) {
-  res.status(404).end('not found');
-}
-
-/*
- * Generic error handling middleware.
- * Send back a 500 page and log the error to the console.
- */
-function handleError(err, req, res, next) {
-  console.error(err.stack);
-  res.status(500).json({err: err.message});
-}
-
-/*
- * Store the db connection and start listening on a port.
- */
-function startExpress(connection) {
-  app._rdbConn = connection;
-  app.listen(config.express.port);
-  console.log('Listening on port ' + config.express.port);
-}
-
-/*
- * Connect to rethinkdb, create the needed tables/indexes and then start express.
- * Create tables/indexes then start express
- */
+});
 
 
+//this needs to be a blocking call because the app
+//cannot continue unless the config is read..
+function readDataLiftConfig(callback) {
+  var options = {
+    encoding: 'utf8',
+    flag: 'r'
+  };
 
-function initAll() {
-    async.waterfall([
+  var configFile =  'datalift.json';
+  try {
+    var fileLocation =  path.join(app.dataLocation, 'datalift.json');
+    var data = fs.readFileSync(fileLocation, options);
 
-    function connect(callback) {
-        r.connect(config.rethinkdb, callback);
-    },
-    function createDatabase(connection, callback) {
-        //Create the database if needed.
-        r.dbList().contains(config.rethinkdb.db).do(function(containsDb) {
-        return r.branch(
-            containsDb,
-            {created: 0},
-            r.dbCreate(config.rethinkdb.db)
-        );
-        }).run(connection, function(err) {
-        callback(err, connection);
-        });
-    },
-    function createTable(connection, callback) {
-        //Create the table if needed.
-        r.tableList().contains('todos').do(function(containsTable) {
-        return r.branch(
-            containsTable,
-            {created: 0},
-            r.tableCreate('todos')
-        );
-        }).run(connection, function(err) {
-        callback(err, connection);
-        });
-    },
-    function createIndex(connection, callback) {
-        //Create the index if needed.
-        r.table('todos').indexList().contains('createdAt').do(function(hasIndex) {
-        return r.branch(
-            hasIndex,
-            {created: 0},
-            r.table('todos').indexCreate('createdAt')
-        );
-        }).run(connection, function(err) {
-        callback(err, connection);
-        });
-    },
-    function waitForIndex(connection, callback) {
-        //Wait for the index to be ready.
-        r.table('todos').indexWait('createdAt').run(connection, function(err, result) {
-        callback(err, connection);
-        });
-    }
-    ], function(err, connection) {
-      if(err) {
-          console.error(err);
-          process.exit(1);
-          return;
-      }
-
-      startExpress(connection);
+    var json = JSON.parse(data);
+    callback && callback(json);  
+  } 
+  catch(err) {
+    console.log(err.message);
+    mixin(app.datalift, {
+      sourceFile: 'missing:' + configFile,
+      configError: err.message
     });
-}
-
-  function startEngine(){
-    var dbEngine = 'rethinkdb -n DataLiftDBServer --bind all'
-    if (app.get('env') === 'production') {
-        dbEngine = 'rethinkdb --daemon -n DataLiftDBServer --bind all';
-        shell.exec(dbEngine);
-        setTimeout(initAll,2000);
-    } else {
-      setTimeout(initAll,20);
-    }
   }
 
-   startEngine();
+}
 
+//load configuration manifest
+readDataLiftConfig(function(data){
+    app.contents = data.contents;
+    app.datalift = mixin(data, {
+      hasPreview: data.contents.preview ? true : false,
+      hasPayload: data.contents.payload ? true : false,
+      hasRaw: data.contents.raw ? true : false,
+      hasMetaData: data.contents.metadata ? true : false,
+      hasProvenance: data.contents.provenance ? true : false,
+      hasInfo: data.contents.info ? true : false,
+      sourceFile:  data.contents.raw || data.contents.payload || data.contents.preview,
+      payloadFile:  data.contents.payload || data.contents.raw || data.contents.preview,
+      hasDevelopers: true
+   });
+  
+});
+
+module.exports = app;

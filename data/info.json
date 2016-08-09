@@ -1,21 +1,21 @@
 {
-    "note": "St Louis Crime Data 2016",
+   "note": "Starbucks Store Locations",
    "container": {
-      "key": "datalift/stlcrime.datalift",
-      "name": "stlcrime.csv",
-      "url": "https://hub.docker.com/r/datalift/stlcrime.datalift/",
-      "uuid": "a2157b89-a57d-492e-80fe-6cf7c50354ca"
+      "key": "starbucks.datalift",
+      "name": "starbucks.csv",
+      "url": "https://hub.docker.com/r/datalift/starbucks.datalift/",
+      "uuid": "c72879de-2aaf-43d7-8a25-6666a86f8fb0   "
    },
-   "publishedDate": "2016-07-15T20:42:02+00:00",
+   "publishedDate": "2016-07-18T20:22:39",
    "keywords": [
-      "seattle",
-      "crime",
-      "911",
+      "united states",
+      "starbucks",
+      "coffee",
       "geolocation"
    ],
-   "command": "docker pull datalift/stlcrime.datalift",
+   "command": "docker pull datalift/starbucks.datalift",
    "stats": {
-      "size": "268000 kb",
+      "size": "272000 kb",
       "mindate": "11/09/2011 11:33:00 PM",
       "maxdate": "06/19/2016 12:02:00 AM"
    }
