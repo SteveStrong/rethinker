@@ -200,6 +200,21 @@ readDataLiftConfig(function(data){
      dbAPI.initDB(app,app.datalift, function(err,connect){
        app.dbConnect = connect;
        console.log('database connected');
+
+       setTimeout(function() {
+          if ( app.datalift.hasInfo ){
+              dbAPI.fillTableFromService(app, {table: 'info', url: '/API/info'});
+          }
+          if ( app.datalift.hasProvenance ){
+              dbAPI.fillTableFromService(app, {table: 'provenance', url: '/API/provenance'});
+          }
+          if ( app.datalift.hasPayload ){
+              dbAPI.fillTableFromService(app, {table: 'data', url: '/API/data'});
+          } 
+
+       }, 2000);
+
+
      })
    });
   

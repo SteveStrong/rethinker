@@ -5,6 +5,7 @@ var async = require('async');
 var r = require('rethinkdb');
 var assert = require("assert");
 var DA = require("deasync");
+var http = require('http');
 
 
 function rethinkAPI() {
@@ -99,6 +100,45 @@ function rethinkAPI() {
         next(err, connection);
       });
   }
+
+  self.fillTable = function(app, args, next){
+    var tableName = args.table;
+    var documents = args.payload || [];
+    var conn = app.dbConnect;
+
+     console.log('fill table:' + tableName);
+
+      r.table(tableName).insert(documents)
+        .run(conn, { durability: "soft"}, function(err, res) {
+          if(err) {
+            return next(err);
+          }
+          console.log('docs inserted: ' + documents.length)
+        });
+  }
+
+   self.fillTableFromService = function(app, args, next){
+
+      http.get({
+        port: app.locals.settings.port || 3000,
+        path: args.url,
+      }, function(res) {
+        var body = '';
+        res.on('data', function(chunk) {
+          body += chunk;
+        });
+
+        res.on('end', function() {
+          args.payload = JSON.parse(body)
+          self.fillTable(app, args, next);
+        });
+
+      }).on('error', function(e) {
+        console.log("fillTableFromService error: " + e.message);
+      }); 
+
+      
+   }
 
 
 //https://github.com/neumino/rethinkdbdash#writable-streams
