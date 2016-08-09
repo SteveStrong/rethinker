@@ -1,0 +1,14 @@
+doctype html
+html(lang="en")
+    head
+        title DataLift
+        link(rel='stylesheet', href='/resources/bootstrap/dist/css/bootstrap.min.css').
+        link(rel='stylesheet', href='/stylesheets/style.css')
+    body
+        include templates/navbar
+        block content
+        #footer
+            include templates/footer
+
+        script(type='text/javascript', src='https://code.jquery.com/jquery-2.2.0.min.js').
+        script(type='text/javascript', src='/resources/bootstrap/dist/js/bootstrap.min.js').

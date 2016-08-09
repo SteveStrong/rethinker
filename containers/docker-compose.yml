@@ -1,0 +1,39 @@
+#assume these files are on datalift hub
+version: "2"
+services:
+    sailfishview:
+        image: datalift/sailfishview
+        ports:
+            - "3001:3000"
+    starbucks:
+        image: datalift/starbucks.datalift
+        ports:
+            - "3002:3000"
+    dailyshow:
+        image: datalift/dailyshow.datalift
+        ports:
+            - "3003:3000"
+    stlcrime:
+        image: datalift/stlcrime.datalift
+        ports:
+            - "3004:3000"
+    drugevents:
+        image: datalift/drugevents.datalift
+        ports:
+            - "3005:3000"
+    flowgerman:
+        image: datalift/flowgerman.datalift
+        ports:
+            - "3006:3000"
+    flowchina:
+        image: datalift/flowchina.datalift
+        ports:
+            - "3007:3000"
+    flowaustralia:
+        image: datalift/flowaustralia.datalift
+        ports:
+            - "3008:3000"
+    flowusa:
+        image: datalift/flowusa.datalift
+        ports:
+            - "3009:3000"

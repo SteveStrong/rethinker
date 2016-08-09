@@ -1,0 +1,40 @@
+extends layout
+
+mixin parseObject(obj)
+  each val, key in obj
+    if(typeof val != 'object')
+      tr
+        th= key + ':'
+        td= val
+    else if(val == null)
+      tr
+        th= key + ':'
+        td= "null"
+    else if(Array.isArray(val))
+      tr
+        th= key + ':'
+          if(val != Array.isArray(val))
+            td= val
+          else if(val != 'object')
+            td= "I am not an object."
+          else if(val == 'object')
+            td= "Hi, I'm an object!"
+            +parseObject(val)
+    else if(typeof val == 'object' )
+      tr
+        if(typeof key != 'number')
+          th= key + ':'
+          td
+            table.table.table-bordered
+              tr
+              +parseObject(val)
+
+
+block content
+  .page-header
+    h1 #{title} - #{sourceFile}
+  p.lead
+    pre
+      table.table.table-bordered
+        tbody
+          +parseObject(payload)

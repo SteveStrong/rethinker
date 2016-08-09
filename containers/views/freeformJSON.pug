@@ -1,0 +1,36 @@
+extends layout
+
+mixin renderValue(obj)
+    if(obj == null || obj === undefined)
+        td= 'null'
+    else if (typeof obj === 'string')
+        td= obj
+    else if (typeof obj === 'number')
+        td= obj
+    else if (typeof obj === 'boolean')
+        td= obj
+    else if (Array.isArray(obj))
+        each val in obj
+            tr
+            td 
+            +renderValue(val)
+    else 
+        td
+            table.table.table-bordered
+                +renderObjectAsTable(obj)
+
+
+mixin renderObjectAsTable(obj)
+    each val, key in obj
+        tr               
+            th= key + ':'
+            +renderValue(val)
+
+
+block content
+    .page-header
+        h1 #{title} - #{sourceFile}
+    p.lead
+        table.table.table-bordered
+            tbody
+                +renderObjectAsTable(payload)
