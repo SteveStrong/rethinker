@@ -10,7 +10,7 @@ var DA = require("deasync");
 function rethinkAPI() {
   var self = this;
 
-  var rethinkdbConfig = {
+  var config = {
       host: "localhost",
       port: 28015,
       authKey: "",
@@ -26,23 +26,27 @@ function rethinkAPI() {
       setTimeout(next,2000);
     } else {
       console.log(dbEngine);
-      setTimeout(initAll,20);
+      setTimeout(next,20);
     }  
   }
 
   self.initDB = function (app,datalift,next) {
+    var dataBaseName = config.db;
+    var dataTableName = 'data';
+    var infoTableName = 'info';
+    var provenanceTableName = 'provenance';
     async.waterfall(
       [
         function connect(callback) {
-            r.connect(config.rethinkdb, callback);
+            r.connect(config, callback);
         },
         function createDatabase(connection, callback) {
             //Create the database if needed.
-            r.dbList().contains(config.rethinkdb.db).do(function(containsDb) {
+            r.dbList().contains(dataBaseName).do(function(containsDb) {
             return r.branch(
                 containsDb,
                 {created: 0},
-                r.dbCreate(config.rethinkdb.db)
+                r.dbCreate(dataBaseName)
             );
             }).run(connection, function(err) {
               callback(err, connection);
@@ -50,34 +54,40 @@ function rethinkAPI() {
         },
         function createTable(connection, callback) {
             //Create the table if needed.
-            r.tableList().contains('todos').do(function(containsTable) {
+            r.tableList().contains(dataTableName).do(function(containsTable) {
             return r.branch(
                 containsTable,
                 {created: 0},
-                r.tableCreate('todos')
+                r.tableCreate(dataTableName)
             );
             }).run(connection, function(err) {
               callback(err, connection);
             });
         },
-        function createIndex(connection, callback) {
-            //Create the index if needed.
-            r.table('todos').indexList().contains('createdAt').do(function(hasIndex) {
-            return r.branch(
-                hasIndex,
-                {created: 0},
-                r.table('todos').indexCreate('createdAt')
-            );
+        function createInfoTable(connection, callback) {
+            //Create the table if needed.
+            r.tableList().contains(infoTableName).do(function(containsTable) {
+              return r.branch(
+                  containsTable,
+                  {created: 0},
+                  r.tableCreate(infoTableName)
+              );
             }).run(connection, function(err) {
               callback(err, connection);
             });
         },
-        function waitForIndex(connection, callback) {
-            //Wait for the index to be ready.
-            r.table('todos').indexWait('createdAt').run(connection, function(err, result) {
+        function createInfoTable(connection, callback) {
+            //Create the table if needed.
+            r.tableList().contains(provenanceTableName).do(function(containsTable) {
+              return r.branch(
+                  containsTable,
+                  {created: 0},
+                  r.tableCreate(provenanceTableName)
+              );
+            }).run(connection, function(err) {
               callback(err, connection);
             });
-        }
+        },
       ], 
       function(err, connection) {
         if(err) {

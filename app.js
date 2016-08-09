@@ -196,6 +196,12 @@ readDataLiftConfig(function(data){
    });
 
    //add the code to create dbServer and init DB
+   dbAPI.initDBEngine(app,function() {
+     dbAPI.initDB(app,app.datalift, function(err,connect){
+       app.dbConnect = connect;
+       console.log('database connected');
+     })
+   });
   
 });
 
