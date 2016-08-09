@@ -1,10 +1,8 @@
 'use strict'  //to get ES6 features
 
 var fs = require('fs');
-
-//var r = require('rethinkdbdash')();
+var async = require('async');
 var r = require('rethinkdb');
-
 var assert = require("assert");
 var DA = require("deasync");
 
@@ -16,66 +14,81 @@ function rethinkAPI() {
       host: "localhost",
       port: 28015,
       authKey: "",
-      db: "data",
-      table: "Data"
+      db: "datalift",
   };
 
-  self.createDb = function(dbName, next) {
-    rethinkdbConfig.db = dbName || rethinkdbConfig.db;  
-
-    var config = {host : rethinkdbConfig.host, port : rethinkdbConfig.port}
-    r.connect(rethinkdbConfig,function(err,conn){
-      assert.ok(err === null,err);
-      r.dbCreate(rethinkdbConfig.db).run(conn,function(err,result){
-        assert.ok(err === null,err);
-        conn.close();
-        next && next(err,result);
-      }).error(function(err) {
-        console.log("Error:" + JSON.stringify(err));
-        next && next(err,result);
-      }).finally(function(err) {
-          console.log(err);
-          next && next(err,result);
-      });
-
-    });
-    //console.log(rethinkdbConfig);
-  };
-
-  self.createDbSync = DA(self.createDb);
-
-  self.establishTable = function(args, next) {
-      rethinkdbConfig.db = args.dbName || rethinkdbConfig.db;  
-      rethinkdbConfig.table = args.table || rethinkdbConfig.table;  
-
-      var documents = args.documents || [];
-
-      //console.log('trying table:' + rethinkdbConfig.table)
-
-      r.connect(rethinkdbConfig, function(err, conn) {
-        if (err) {
-            console.log("Could not open a connection to initialize the database");
-            console.log(err.message);
-            process.exit(1);
-        }
-        //console.log('open conn for table:' + rethinkdbConfig.table)
-
-        //do the real work of creation and loading
-        r.tableCreate(rethinkdbConfig.table).run(conn)
-        .finally(function(result) {
-        //maybe load the table here?
-          r.table(rethinkdbConfig.table).insert(documents).run(conn, {durability: 'soft'})
-          .finally(function(err, result) {
-            conn.close();
-            //console.log('close conn for table:' + rethinkdbConfig.table)
-            next && next(err,result);
-          });   
-        });  
-
-      });
+  self.initDBEngine = function(app, next)
+  {
+    var dbEngine = 'rethinkdb -n dataliftserver --bind all'
+    if (app.get('env') === 'production') {
+      dbEngine = 'rethinkdb --daemon -n dataliftserver --bind all';
+      shell.exec(dbEngine);
+      setTimeout(next,2000);
+    } else {
+      console.log(dbEngine);
+      setTimeout(initAll,20);
+    }  
   }
 
-  self.establishTableSync = DA(self.establishTable);
+  self.initDB = function (app,datalift,next) {
+    async.waterfall(
+      [
+        function connect(callback) {
+            r.connect(config.rethinkdb, callback);
+        },
+        function createDatabase(connection, callback) {
+            //Create the database if needed.
+            r.dbList().contains(config.rethinkdb.db).do(function(containsDb) {
+            return r.branch(
+                containsDb,
+                {created: 0},
+                r.dbCreate(config.rethinkdb.db)
+            );
+            }).run(connection, function(err) {
+              callback(err, connection);
+            });
+        },
+        function createTable(connection, callback) {
+            //Create the table if needed.
+            r.tableList().contains('todos').do(function(containsTable) {
+            return r.branch(
+                containsTable,
+                {created: 0},
+                r.tableCreate('todos')
+            );
+            }).run(connection, function(err) {
+              callback(err, connection);
+            });
+        },
+        function createIndex(connection, callback) {
+            //Create the index if needed.
+            r.table('todos').indexList().contains('createdAt').do(function(hasIndex) {
+            return r.branch(
+                hasIndex,
+                {created: 0},
+                r.table('todos').indexCreate('createdAt')
+            );
+            }).run(connection, function(err) {
+              callback(err, connection);
+            });
+        },
+        function waitForIndex(connection, callback) {
+            //Wait for the index to be ready.
+            r.table('todos').indexWait('createdAt').run(connection, function(err, result) {
+              callback(err, connection);
+            });
+        }
+      ], 
+      function(err, connection) {
+        if(err) {
+            console.error(err);
+            process.exit(1);
+            return;
+        }
+
+        next(err, connection);
+      });
+  }
 
 
 //https://github.com/neumino/rethinkdbdash#writable-streams

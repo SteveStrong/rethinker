@@ -69,7 +69,7 @@ function queryGET(req, res, next) {
         table: 'usa',
         filter: {'headCount': 3}
     }
-    dbAPI.doQuerySync(args, function(err,found){
+    dbAPI.doQuerySync(args, function(err,found) {
         if(err) {
             return next(err);
         }

@@ -7,6 +7,8 @@ var favicon = require('serve-favicon');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
+var async = require('async');
+var dbAPI = require("./model/rethinkAPI");
 var glob = require("glob");
 
 var app = express();
@@ -192,6 +194,8 @@ readDataLiftConfig(function(data){
       payloadFile:  data.contents.payload || data.contents.raw || data.contents.preview,
       hasDevelopers: true
    });
+
+   //add the code to create dbServer and init DB
   
 });
 

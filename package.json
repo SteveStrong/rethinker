@@ -5,7 +5,8 @@
   "main": "app.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node app.js"
+    //"start": "node app.js",
+    "start": "node ./bin/www"
   },
   "author": "",
   "license": "ISC",
@@ -15,11 +16,12 @@
     "express": "^4.14.0",
     "gen-run": "^0.1.2",
     "rethinkdb": "^2.3.2",
-    "rethinkdbdash": "^2.3.19",
     "shelljs": "^0.7.3",
     "vm": "^0.1.0"
   },
   "devDependencies": {
-    "nodemon": "^1.10.0"
+    "nodemon": "^1.10.0",
+    "debug": "~2.2.0", 
+    "node-sass-middleware": "^0.9.8"
   }
 }
